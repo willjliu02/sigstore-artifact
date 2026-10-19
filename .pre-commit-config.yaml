@@ -5,4 +5,4 @@ repos:
         name: Truffle Hog Secret Scan
         entry: trufflehog git file://. --since-commit HEAD --trust-local-git-config --no-verification --fail
         language: system
-        pass_filesnames: false
+        pass_filenames: false
