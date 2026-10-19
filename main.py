@@ -57,8 +57,7 @@ def inclusion(log_index, artifact_filepath, debug=False):
         print("Please enter a log index")
         exit(1)
 
-    artifact_path = Path(artifact_filepath)
-    if artifact_filepath is None or not artifact_path.exists():
+    if artifact_filepath is None or not Path(artifact_filepath).exists():
         print("Please enter a valid artifact filepath")
         exit(1)
 
