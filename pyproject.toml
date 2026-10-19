@@ -1,0 +1,21 @@
+[project]
+name = "sscs-hw"
+version = "0.1.0"
+description = "Homework Assignment for NYU CS-GY 9223 Software Supply Chain Security"
+authors = [
+    {name = "willjliu02",email = "william.liu1107@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "ruff (>=0.17.1,<0.18.0)",
+    "mypy (>=2.4.0,<3.0.0)",
+    "bandit (>=1.9.4,<2.0.0)",
+    "requests (>=2.34.2,<3.0.0)",
+    "cryptography (>=50.0.2,<51.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
