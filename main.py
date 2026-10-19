@@ -86,7 +86,12 @@ def inclusion(log_index, artifact_filepath, debug=False):
         exit(1)
 
     public_key = extract_public_key(x509_pem)
-    verify_artifact_signature(signature, public_key, artifact_filepath)
+
+    try:
+        verify_artifact_signature(signature, public_key, artifact_filepath)
+    except Exception as e:
+        print(f"Signature is invalid")
+        exit(1)
 
     leaf_hash = compute_leaf_hash(log_entry['body'])
 
