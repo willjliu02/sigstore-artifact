@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: secret-scan
+        name: Truffle Hog Secret Scan
+        entry: trufflehog git file://. --since-commit HEAD --trust-local-git-config --no-verification --fail
+        language: system
+        types: [python]
