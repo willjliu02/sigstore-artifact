@@ -100,6 +100,12 @@ def inclusion(log_index, artifact_filepath, debug=False):
         print(f"Signature is invalid")
         exit(1)
 
+    try:
+        verify_artifact_signature(signature, public_key, artifact_filepath)
+    except Exception as e:
+        print(f"Signature is invalid")
+        exit(1)
+
     leaf_hash = compute_leaf_hash(log_entry["body"])
 
     verification_proof = get_verification_proof(log_index, debug=debug)
