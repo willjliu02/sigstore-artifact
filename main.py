@@ -57,8 +57,7 @@ def inclusion(log_index, artifact_filepath, debug=False):
         print("Please enter a log index")
         exit(1)
 
-    artifact_path = Path(artifact_filepath)
-    if artifact_filepath is None or not artifact_path.exists():
+    if artifact_filepath is None or not Path(artifact_filepath).exists():
         print("Please enter a valid artifact filepath")
         exit(1)
 
@@ -180,7 +179,7 @@ def main():
                         Usage: --inclusion 126574567',
                         required=False, type=int)
     parser.add_argument('--artifact', help='Artifact filepath for verifying\
-                        signature',
+                        signature', default='', type=str,
                         required=False)
     parser.add_argument('--consistency', help='Verify consistency of a given\
                         checkpoint with the latest checkpoint.',
