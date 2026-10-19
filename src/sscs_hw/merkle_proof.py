@@ -1,6 +1,6 @@
-import hashlib
-import binascii
 import base64
+import binascii
+import hashlib
 
 # domain separation prefixes according to the RFC
 RFC6962_LEAF_HASH_PREFIX = 0
@@ -94,7 +94,7 @@ def verify_match(calculated, expected):
 
 def decomp_incl_proof(index, size):
     inner = inner_proof_size(index, size)
-    border = bin(index >> inner).count("1")
+    border = (index >> inner).bit_count()
     return inner, border
 
 

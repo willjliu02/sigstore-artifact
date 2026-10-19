@@ -1,30 +1,36 @@
 import argparse
-from math import e
-from .util import extract_public_key, verify_artifact_signature
+import json
+import sys
+from base64 import b64decode
+from pathlib import Path
+from urllib.parse import urlencode
+
+import requests
+from cryptography.exceptions import InvalidSignature
+
 from .merkle_proof import (
     DefaultHasher,
+    RootMismatchError,
+    compute_leaf_hash,
     verify_consistency,
     verify_inclusion,
-    compute_leaf_hash,
 )
-import requests
-from pathlib import Path
-import json
-from base64 import b64decode
-from urllib.parse import urlencode
+from .util import extract_public_key, verify_artifact_signature
 
 BASE_URL = "https://rekor.sigstore.dev"
 
 
 def get_entry(log_index, debug=False):
-    resp = requests.get(f"{BASE_URL}/api/v1/log/entries?logIndex={log_index}", timeout=10)
+    resp = requests.get(
+        f"{BASE_URL}/api/v1/log/entries?logIndex={log_index}", timeout=10
+    )
 
     if resp.status_code != 200:
         raise ValueError(f"The following log_index is invalid: {log_index}")
     try:
         log_entry = resp.json()
-    except:
-        raise ValueError(f"The log index was not a valid json object")
+    except requests.exceptions.JSONDecodeError as e:
+        raise ValueError("The log index was not a valid json object") from e
 
     return log_entry
 
@@ -36,7 +42,7 @@ def get_log_entry(log_index, debug=False):
 
     if len(log_entry) != 1:
         print("No entry for the provided log entry")
-        exit(1)
+        sys.exit(1)
 
     entry_iter = iter(log_entry.values())
     entry = next(entry_iter)
@@ -57,8 +63,8 @@ def get_verification_proof(log_index, debug=False):
 
     if len(log_entry) != 1:
         print("No entry for the provided log entry")
-        exit(1)
-        
+        sys.exit(1)
+
     entry_iter = iter(log_entry.values())
     entry = next(entry_iter)
 
@@ -68,49 +74,49 @@ def get_verification_proof(log_index, debug=False):
 def inclusion(log_index, artifact_filepath, debug=False):
     if log_index is None:
         print("Please enter a log index")
-        exit(1)
+        sys.exit(1)
 
     if artifact_filepath is None or not Path(artifact_filepath).exists():
         print("Please enter a valid artifact filepath")
-        exit(1)
+        sys.exit(1)
 
     try:
         log_entry = get_log_entry(log_index, debug=debug)
     except ValueError as e:
         print(e)
-        exit(1)
+        sys.exit(1)
 
     try:
         entry_body = json.loads(b64decode(log_entry["body"]))
-    except Exception as e:
+    except (KeyError, TypeError, ValueError) as e:
         print(e)
-        exit(1)
+        sys.exit(1)
 
     try:
         x509_pem = b64decode(entry_body["spec"]["signature"]["publicKey"]["content"])
-    except Exception as e:
+    except (KeyError, TypeError, ValueError) as e:
         print(e)
-        exit(1)
+        sys.exit(1)
 
     try:
         signature = b64decode(entry_body["spec"]["signature"]["content"])
-    except Exception as e:
+    except (KeyError, TypeError, ValueError) as e:
         print(e)
-        exit(1)
+        sys.exit(1)
 
     public_key = extract_public_key(x509_pem)
 
     try:
         verify_artifact_signature(signature, public_key, artifact_filepath)
-    except Exception as e:
-        print(f"Signature is invalid")
-        exit(1)
+    except (InvalidSignature, ValueError, TypeError, OSError):
+        print("Signature is invalid")
+        sys.exit(1)
 
     try:
         verify_artifact_signature(signature, public_key, artifact_filepath)
-    except Exception as e:
-        print(f"Signature is invalid")
-        exit(1)
+    except (InvalidSignature, ValueError, TypeError, OSError):
+        print("Signature is invalid")
+        sys.exit(1)
 
     leaf_hash = compute_leaf_hash(log_entry["body"])
 
@@ -131,9 +137,9 @@ def inclusion(log_index, artifact_filepath, debug=False):
             debug=debug,
         )
         print("Offline verification successful")
-    except Exception as e:
+    except (ValueError, RootMismatchError) as e:
         print(f"Inclusion proof verification failed: {e}")
-        exit(1)
+        sys.exit(1)
 
 
 def get_latest_checkpoint(debug=False):
@@ -142,9 +148,9 @@ def get_latest_checkpoint(debug=False):
 
     try:
         checkpoint = resp.json()
-    except Exception as e:
+    except requests.exceptions.JSONDecodeError as e:
         print(f"Failed to get latest checkpoint: {e}")
-        exit(1)
+        sys.exit(1)
 
     del checkpoint["inactiveShards"]
 
@@ -171,13 +177,13 @@ def consistency(prev_checkpoint, debug=False):
 
     if resp.status_code != 200:
         print(f"Failed to get consistency proof: {resp.status_code}")
-        exit(1)
+        sys.exit(1)
 
     try:
         proof = resp.json()
-    except Exception as e:
+    except requests.exceptions.JSONDecodeError as e:
         print(f"Failed to get consistency proof: {e}")
-        exit(1)
+        sys.exit(1)
 
     try:
         verify_consistency(
@@ -189,9 +195,9 @@ def consistency(prev_checkpoint, debug=False):
             latest_checkpoint["rootHash"],
         )
         print("Consistency verification successful")
-    except Exception as e:
+    except (KeyError, ValueError, RootMismatchError) as e:
         print(f"Consistency proof verification failed: \n{e}")
-        exit(1)
+        sys.exit(1)
 
 
 def main():
