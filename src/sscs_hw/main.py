@@ -17,7 +17,7 @@ BASE_URL = "https://rekor.sigstore.dev"
 
 
 def get_entry(log_index, debug=False):
-    resp = requests.get(f"{BASE_URL}/api/v1/log/entries?logIndex={log_index}")
+    resp = requests.get(f"{BASE_URL}/api/v1/log/entries?logIndex={log_index}", timeout=10)
 
     if resp.status_code != 200:
         raise ValueError(f"The following log_index is invalid: {log_index}")
@@ -34,7 +34,10 @@ def get_log_entry(log_index, debug=False):
 
     log_entry = get_entry(log_index, debug)
 
-    assert len(log_entry.values()) == 1
+    if len(log_entry) != 1:
+        print("No entry for the provided log entry")
+        exit(1)
+
     entry_iter = iter(log_entry.values())
     entry = next(entry_iter)
 
@@ -52,7 +55,10 @@ def get_verification_proof(log_index, debug=False):
     # TODO: verify that log index value is sane
     log_entry = get_entry(log_index, debug)
 
-    assert len(log_entry.values()) == 1
+    if len(log_entry) != 1:
+        print("No entry for the provided log entry")
+        exit(1)
+        
     entry_iter = iter(log_entry.values())
     entry = next(entry_iter)
 
@@ -132,7 +138,7 @@ def inclusion(log_index, artifact_filepath, debug=False):
 
 def get_latest_checkpoint(debug=False):
     # TODO: Fetch the latest checkpoint from rekor
-    resp = requests.get(f"{BASE_URL}/api/v1/log/")
+    resp = requests.get(f"{BASE_URL}/api/v1/log/", timeout=10)
 
     try:
         checkpoint = resp.json()
@@ -161,7 +167,7 @@ def consistency(prev_checkpoint, debug=False):
     }
 
     rekor_url = f"{BASE_URL}/api/v1/log/proof?{urlencode(query_params)}"
-    resp = requests.get(rekor_url)
+    resp = requests.get(rekor_url, timeout=10)
 
     if resp.status_code != 200:
         print(f"Failed to get consistency proof: {resp.status_code}")
