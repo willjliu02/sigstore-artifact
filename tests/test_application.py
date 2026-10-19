@@ -174,7 +174,9 @@ def test_entry_fetch_and_response_validation(monkeypatch):
     with pytest.raises(ValueError, match="invalid"):
         app.get_entry(7)
     get.return_value.status_code = 200
-    get.return_value.json.side_effect = app.requests.exceptions.JSONDecodeError("bad JSON", "", 0)
+    get.return_value.json.side_effect = app.requests.exceptions.JSONDecodeError(
+        "bad JSON", "", 0
+    )
     with pytest.raises(ValueError, match="valid json"):
         app.get_entry(7)
     get.return_value.json.side_effect = None
@@ -291,7 +293,9 @@ def test_checkpoint_and_consistency_http_flow(monkeypatch, capsys):
         get.side_effect = [checkpoint_response, proof_response]
         with pytest.raises(SystemExit):
             app.consistency(previous)
-    checkpoint_response.json.side_effect = app.requests.exceptions.JSONDecodeError("bad JSON", "", 0)
+    checkpoint_response.json.side_effect = app.requests.exceptions.JSONDecodeError(
+        "bad JSON", "", 0
+    )
     get.side_effect = [checkpoint_response]
     with pytest.raises(SystemExit):
         app.get_latest_checkpoint()

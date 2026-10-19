@@ -108,13 +108,13 @@ def inclusion(log_index, artifact_filepath, debug=False):
 
     try:
         verify_artifact_signature(signature, public_key, artifact_filepath)
-    except (InvalidSignature, ValueError, TypeError, OSError):
+    except InvalidSignature, ValueError, TypeError, OSError:
         print("Signature is invalid")
         sys.exit(1)
 
     try:
         verify_artifact_signature(signature, public_key, artifact_filepath)
-    except (InvalidSignature, ValueError, TypeError, OSError):
+    except InvalidSignature, ValueError, TypeError, OSError:
         print("Signature is invalid")
         sys.exit(1)
 
