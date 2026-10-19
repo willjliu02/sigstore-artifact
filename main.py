@@ -179,7 +179,7 @@ def main():
                         Usage: --inclusion 126574567',
                         required=False, type=int)
     parser.add_argument('--artifact', help='Artifact filepath for verifying\
-                        signature',
+                        signature', default='', type=str,
                         required=False)
     parser.add_argument('--consistency', help='Verify consistency of a given\
                         checkpoint with the latest checkpoint.',
